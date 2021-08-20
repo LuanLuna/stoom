@@ -1,7 +1,6 @@
 package com.br.luanluna.stoom.service;
 
 import com.br.luanluna.stoom.model.Address;
-import com.google.gson.Gson;
 import com.google.maps.model.GeocodingResult;
 
 public interface GeoApiService {
