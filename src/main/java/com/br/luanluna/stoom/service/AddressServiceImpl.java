@@ -1,8 +1,10 @@
 package com.br.luanluna.stoom.service;
 
 import com.br.luanluna.stoom.exception.AddressNotFoundException;
+import com.br.luanluna.stoom.exception.GenericAddressException;
 import com.br.luanluna.stoom.model.Address;
 import com.br.luanluna.stoom.model.Pagination;
+import com.br.luanluna.stoom.model.validation.AddressValidation;
 import com.br.luanluna.stoom.repository.AddressRepository;
 import com.google.maps.model.GeocodingResult;
 import com.google.maps.model.LatLng;
@@ -28,25 +30,15 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public Address create(Address address) {
-        if (address.getLatitude() == null || address.getLongitude() == null ||
-                address.getLatitude().compareTo(Double.valueOf(0)) == 0 ||
-                address.getLongitude().compareTo(Double.valueOf(0)) == 0) {
+        validateResource(address);
 
-            GeocodingResult localization = geoApiService.getGeocoding(address);
-
-            if (localization != null && localization.geometry != null && localization.geometry.location != null) {
-
-                LatLng location = localization.geometry.location;
-                address.setLatitude(location.lat != 0 ? location.lat : 0);
-                address.setLatitude(location.lng != 0 ? location.lng : 0);
-            }
-        }
-
+        address = fillLatitudeAndLongitude(address);
         return addressRepository.save(address);
     }
 
     @Override
     public Address get(BigInteger id) {
+
         Optional<Address> address = addressRepository.findById(id);
         if (address.isPresent()) {
             return address.get();
@@ -57,8 +49,12 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public Address update(Address address) {
+        validateResource(address);
+
         Optional<Address> savedAddress = addressRepository.findById(address.getId());
         if (savedAddress.isPresent()) {
+
+            address = fillLatitudeAndLongitude(address);
             return addressRepository.save(address);
         }
 
@@ -67,6 +63,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public void delete(BigInteger id) {
+
         Optional<Address> savedAddress = addressRepository.findById(id);
         if (savedAddress.isPresent()) {
             addressRepository.deleteById(id);
@@ -77,6 +74,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public List<Address> getAll(Pagination pagination) {
+
         Pageable paging = PageRequest.of(pagination.getPage(),
                             pagination.getSize(),
                             Sort.by((pagination.isDesc() ?
@@ -89,5 +87,31 @@ public class AddressServiceImpl implements AddressService {
             return pagedResult.getContent();
         }
         return new ArrayList<>();
+    }
+
+    public Address fillLatitudeAndLongitude(Address address) {
+
+        if (address.getLatitude() == null || address.getLongitude() == null ||
+                address.getLatitude().compareTo(Double.valueOf(0)) == 0 ||
+                address.getLongitude().compareTo(Double.valueOf(0)) == 0) {
+
+            GeocodingResult localization = geoApiService.getGeocoding(address);
+
+            if (localization != null && localization.geometry != null && localization.geometry.location != null) {
+
+                LatLng location = localization.geometry.location;
+                address.setLatitude(location.lat != 0 ? location.lat : 0);
+                address.setLongitude(location.lng != 0 ? location.lng : 0);
+            }
+        }
+        return address;
+    }
+
+    private void validateResource(Address address) {
+        List<String> errors = AddressValidation.validate(address);
+        if (errors.size() > 0) {
+            throw new GenericAddressException(errors);
+        }
+
     }
 }

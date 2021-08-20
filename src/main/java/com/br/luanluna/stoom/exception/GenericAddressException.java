@@ -6,7 +6,7 @@ import java.util.List;
 public class GenericAddressException extends RuntimeException {
     List<String> reasons;
 
-    GenericAddressException(List<String> reasons) {
+    public GenericAddressException(List<String> reasons) {
         this.reasons = reasons;
     }
 

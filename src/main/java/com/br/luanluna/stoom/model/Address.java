@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.Objects;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -57,4 +58,9 @@ public class Address implements Serializable {
 
     private Double latitude;
     private Double longitude;
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, streetName, number, complement, neighbourhood, city, state, country, zipcode, latitude, longitude);
+    }
 }

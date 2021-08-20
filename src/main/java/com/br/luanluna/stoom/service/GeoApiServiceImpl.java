@@ -6,9 +6,11 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.model.GeocodingResult;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.util.StringJoiner;
 
+@Service
 public class GeoApiServiceImpl implements GeoApiService {
 
     @Value("${geocoding.secret.key}")
