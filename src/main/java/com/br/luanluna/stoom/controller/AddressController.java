@@ -3,6 +3,7 @@ package com.br.luanluna.stoom.controller;
 import com.br.luanluna.stoom.exception.GenericAddressException;
 import com.br.luanluna.stoom.exception.AddressNotFoundException;
 import com.br.luanluna.stoom.model.Address;
+import com.br.luanluna.stoom.model.ErrorResponse;
 import com.br.luanluna.stoom.model.Pagination;
 import com.br.luanluna.stoom.service.AddressService;
 import com.br.luanluna.stoom.util.ControllerUtil;
@@ -15,6 +16,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+import javax.validation.Valid;
 import java.math.BigInteger;
 
 
@@ -29,39 +31,43 @@ public class AddressController {
     @RequestMapping(method = RequestMethod.POST)
     @ApiResponses({
             @ApiResponse(code = 201, response = Address.class, message = "Created"),
-            @ApiResponse(code = 400, response = String[].class, message = "Bad Request"),
-            @ApiResponse(code = 404, response = String[].class, message = "Not Found"),
-            @ApiResponse(code = 500, response = String[].class, message = "Internal Server Error")
+            @ApiResponse(code = 400, response = ErrorResponse.class, message = "Bad Request"),
+            @ApiResponse(code = 404, response = ErrorResponse.class, message = "Not Found"),
+            @ApiResponse(code = 500, response = ErrorResponse.class, message = "Internal Server Error")
     })
-    public ResponseEntity<?> create(@RequestBody(required = true) Address address, BindingResult bindingResult) {
+    public ResponseEntity<?> create(@Valid @RequestBody(required = true) Address address, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return new ResponseEntity<>(ControllerUtil.extractErrors(bindingResult), HttpStatus.BAD_REQUEST);
+            String[] errors = ControllerUtil.extractErrors(bindingResult);
+            return new ResponseEntity<>(new ErrorResponse(errors), HttpStatus.BAD_REQUEST);
         }
 
         try {
             return new ResponseEntity<>(addressService.create(address), HttpStatus.CREATED);
 
         } catch (GenericAddressException genericAddressException) {
-            return new ResponseEntity<>(genericAddressException.getReasons(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(genericAddressException.getReasons()),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
 
         } catch (Exception e) {
-            return new ResponseEntity<>(new String[]{"Internal server error"}, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(new String[]{"Internal server error"}),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @RequestMapping(path = "{id}", method = RequestMethod.PUT)
     @ApiResponses({
             @ApiResponse(code = 200, response = Address.class, message = "Ok"),
-            @ApiResponse(code = 400, response = String[].class, message = "Bad Request"),
-            @ApiResponse(code = 404, response = String[].class, message = "Not Found"),
-            @ApiResponse(code = 500, response = String[].class, message = "Internal Server Error")
+            @ApiResponse(code = 400, response = ErrorResponse.class, message = "Bad Request"),
+            @ApiResponse(code = 404, response = ErrorResponse.class, message = "Not Found"),
+            @ApiResponse(code = 500, response = ErrorResponse.class, message = "Internal Server Error")
     })
     public ResponseEntity<?> update(@PathVariable(required = true) BigInteger id,
-                                    @RequestBody(required = true) Address address,
+                                    @Valid @RequestBody(required = true) Address address,
                                     BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
-            return new ResponseEntity<>(ControllerUtil.extractErrors(bindingResult), HttpStatus.BAD_REQUEST);
+            String[] errors = ControllerUtil.extractErrors(bindingResult);
+            return new ResponseEntity<>(new ErrorResponse(errors), HttpStatus.BAD_REQUEST);
         }
 
         try {
@@ -74,22 +80,22 @@ public class AddressController {
             return new ResponseEntity<>(addressService.update(address), HttpStatus.OK);
 
         } catch (AddressNotFoundException addressNotFoundException) {
-            return new ResponseEntity<>(new String[]{"Not found"}, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ErrorResponse(new String[]{"Not found"}), HttpStatus.NOT_FOUND);
 
         } catch (GenericAddressException genericAddressException) {
-            return new ResponseEntity<>(genericAddressException.getReasons(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(genericAddressException.getReasons()), HttpStatus.INTERNAL_SERVER_ERROR);
 
         } catch (Exception e) {
-            return new ResponseEntity<>(new String[]{"Internal server error"}, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(new String[]{"Internal server error"}), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @RequestMapping(path = "{id}", method = RequestMethod.DELETE)
     @ApiResponses({
-            @ApiResponse(code = 200, response = Void.class, message = "Ok"),
-            @ApiResponse(code = 400, response = String[].class, message = "Bad Request"),
-            @ApiResponse(code = 404, response = String[].class, message = "Not Found"),
-            @ApiResponse(code = 500, response = String[].class, message = "Internal Server Error")
+            @ApiResponse(code = 200, message = "Ok"),
+            @ApiResponse(code = 400, response = ErrorResponse.class, message = "Bad Request"),
+            @ApiResponse(code = 404, response = ErrorResponse.class, message = "Not Found"),
+            @ApiResponse(code = 500, response = ErrorResponse.class, message = "Internal Server Error")
     })
     public ResponseEntity<?> delete(@PathVariable(required = true) BigInteger id) {
 
@@ -102,22 +108,22 @@ public class AddressController {
             return ResponseEntity.ok().build();
 
         } catch (AddressNotFoundException addressNotFoundException) {
-            return new ResponseEntity<>(new String[]{"Not found"}, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ErrorResponse(new String[]{"Not found"}), HttpStatus.NOT_FOUND);
 
         } catch (GenericAddressException genericAddressException) {
-            return new ResponseEntity<>(genericAddressException.getReasons(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(genericAddressException.getReasons()), HttpStatus.INTERNAL_SERVER_ERROR);
 
         } catch (Exception e) {
-            return new ResponseEntity<>(new String[]{"Internal server error"}, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(new String[]{"Internal server error"}), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @RequestMapping(path = "{id}", method = RequestMethod.GET)
     @ApiResponses({
             @ApiResponse(code = 200, response = Address.class, message = "Ok"),
-            @ApiResponse(code = 400, response = String[].class, message = "Bad Request"),
-            @ApiResponse(code = 404, response = String[].class, message = "Not Found"),
-            @ApiResponse(code = 500, response = String[].class, message = "Internal Server Error")
+            @ApiResponse(code = 400, response = ErrorResponse.class, message = "Bad Request"),
+            @ApiResponse(code = 404, response = ErrorResponse.class, message = "Not Found"),
+            @ApiResponse(code = 500, response = ErrorResponse.class, message = "Internal Server Error")
     })
     public ResponseEntity<?> get(@PathVariable(required = true) BigInteger id) {
 
@@ -129,22 +135,22 @@ public class AddressController {
             return new ResponseEntity<>(addressService.get(id), HttpStatus.OK);
 
         } catch (AddressNotFoundException addressNotFoundException) {
-            return new ResponseEntity<>(new String[]{"Not found"}, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ErrorResponse(new String[]{"Not found"}), HttpStatus.NOT_FOUND);
 
         } catch (GenericAddressException genericAddressException) {
-            return new ResponseEntity<>(genericAddressException.getReasons(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(genericAddressException.getReasons()), HttpStatus.INTERNAL_SERVER_ERROR);
 
         } catch (Exception e) {
-            return new ResponseEntity<>(new String[]{"Internal server error"}, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(new String[]{"Internal server error"}), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @RequestMapping(method = RequestMethod.GET)
     @ApiResponses({
             @ApiResponse(code = 200, response = Address.class, responseContainer = "List", message = "Ok"),
-            @ApiResponse(code = 400, response = String[].class, message = "Bad Request"),
-            @ApiResponse(code = 404, response = String[].class, message = "Not Found"),
-            @ApiResponse(code = 500, response = String[].class, message = "Internal Server Error")
+            @ApiResponse(code = 400, response = ErrorResponse.class, message = "Bad Request"),
+            @ApiResponse(code = 404, response = ErrorResponse.class, message = "Not Found"),
+            @ApiResponse(code = 500, response = ErrorResponse.class, message = "Internal Server Error")
     })
     public ResponseEntity<?> list(@RequestParam(defaultValue = "0") Integer page,
                                   @RequestParam(defaultValue = "10") Integer size,
@@ -156,13 +162,13 @@ public class AddressController {
             return new ResponseEntity<>(addressService.getAll(pagination), HttpStatus.OK);
 
         } catch (AddressNotFoundException addressNotFoundException) {
-            return new ResponseEntity<>(new String[]{"Not found"}, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ErrorResponse(new String[]{"Not found"}), HttpStatus.NOT_FOUND);
 
         } catch (GenericAddressException genericAddressException) {
-            return new ResponseEntity<>(genericAddressException.getReasons(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(genericAddressException.getReasons()), HttpStatus.INTERNAL_SERVER_ERROR);
 
         } catch (Exception e) {
-            return new ResponseEntity<>(new String[]{"Internal server error"}, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ErrorResponse(new String[]{"Internal server error"}), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

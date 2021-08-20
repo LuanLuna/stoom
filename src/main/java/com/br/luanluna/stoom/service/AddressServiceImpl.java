@@ -102,6 +102,9 @@ public class AddressServiceImpl implements AddressService {
                 LatLng location = localization.geometry.location;
                 address.setLatitude(location.lat != 0 ? location.lat : 0);
                 address.setLongitude(location.lng != 0 ? location.lng : 0);
+            } else {
+                address.setLatitude(null);
+                address.setLongitude(null);
             }
         }
         return address;

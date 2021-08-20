@@ -1,7 +1,6 @@
 package com.br.luanluna.stoom.service;
 
 import com.br.luanluna.stoom.model.Address;
-import com.br.luanluna.stoom.util.GeoApiContextSingleton;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.model.GeocodingResult;
@@ -9,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.StringJoiner;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class GeoApiServiceImpl implements GeoApiService {
@@ -31,7 +31,16 @@ public class GeoApiServiceImpl implements GeoApiService {
                     .add(address.getCountry())
                     .add(address.getZipcode());
 
-            GeoApiContext context = GeoApiContextSingleton.getInstance(KEY).getContext();
+            GeoApiContext context = new GeoApiContext
+                    .Builder()
+                    .disableRetries()
+                    .readTimeout(3, TimeUnit.SECONDS)
+                    .retryTimeout(3, TimeUnit.SECONDS)
+                    .connectTimeout(3, TimeUnit.SECONDS)
+                    .writeTimeout(3, TimeUnit.SECONDS)
+                    .apiKey(KEY)
+                    .build();
+
             GeocodingResult[] results =  GeocodingApi.geocode(context,
                     joiner.toString()).await();
 
